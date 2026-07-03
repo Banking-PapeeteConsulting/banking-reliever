@@ -7,7 +7,7 @@ consumed **read-only** via `kpack process <CAP_ID>`.
 
 All upstream knowledge (BCM YAML, GOV / URBA / FUNC / TECH-STRAT / TECH-TACT ADRs,
 product / business / tech visions) is consumed **read-only** through a single CLI —
-**`kpack`**, the shared knowledge-pack engine (container `ghcr.io/papeete-consulting/kpack`,
+**`kpack`**, the shared knowledge-pack engine (PyPI package `kpack`,
 implementing `ADR-KCM-URBA-0002`). One engine serves every map; the corpus is selected
 by the id prefix or `--context`, never by a binary name. `kpack` replaces the three
 retired per-map CLIs `rlv-knowledge`, `tech` and `gov-pack`. The three corpora it
@@ -22,11 +22,11 @@ resolves for this repo:
   ADRs above any single product or platform, via `kpack pack <BNK.GOV.…>`.
 
 Governance is thus layered across three scopes (org-wide `BNK.GOV`, Reliever-product
-`BNK.RLVR`, tech-platform `BNK.TECH`) but reached through **one** engine. `kpack` ships
-as the container `ghcr.io/papeete-consulting/kpack:v1.0.0` — invoke it as a bare `kpack`
-(via the `bin/kpack` wrapper on `PATH`, or a `pipx`-installed console script); the
-repo-root **`.kpack.yaml`** maps enterprise `BNK` → the `banking-governance` registry
-that resolves every context. This repo never authors or modifies upstream artifacts.
+`BNK.RLVR`, tech-platform `BNK.TECH`) but reached through **one** engine. Install `kpack`
+from PyPI (`pip install "kpack==2.0.0"`) so a bare `kpack` is on `PATH` — no Docker; it
+clones the corpus repos with your host git identity. The repo-root **`.kpack.yaml`** maps
+enterprise `BNK` → the `banking-governance` registry that resolves every context. This
+repo never authors or modifies upstream artifacts.
 
 ---
 

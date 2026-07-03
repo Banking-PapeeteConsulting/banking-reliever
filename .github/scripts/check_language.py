@@ -243,9 +243,8 @@ def main() -> int:
     if shutil.which("kpack") is None:
         print(
             "ℹ kpack CLI not on PATH — skipping language check.\n"
-            "  To enable this check in CI, make `kpack` available (the bin/kpack\n"
-            "  container wrapper, or a pipx-installed console script) with read\n"
-            "  access to the private corpora."
+            "  To enable this check, install the engine from PyPI\n"
+            "  (`pip install kpack==2.0.0`) with git access to the private corpora."
         )
         return 0
 

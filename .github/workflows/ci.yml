@@ -33,22 +33,19 @@ jobs:
 
       # The BCM and the process model no longer live in this repo — both are
       # hosted in the private `reliever-knowledge` repo (context BNK.RLVR) and
-      # consumed via the single `kpack` engine (the GHCR container
-      # `ghcr.io/papeete-consulting/kpack`, which replaces rlv-knowledge/tech/gov-pack).
-      # check_language.py discovers capabilities via `kpack process BNK.RLVR
-      # --list` and fetches prose via `kpack pack`, so a bare `kpack` must be on
-      # PATH. We expose it via the repo's `bin/kpack` container wrapper.
+      # consumed via the single `kpack` engine (the PyPI package `kpack`, which
+      # replaces rlv-knowledge/tech/gov-pack). check_language.py discovers
+      # capabilities via `kpack process BNK.RLVR --list` and fetches prose via
+      # `kpack pack`, so a bare `kpack` must be on PATH — we `pip install` it.
       #
-      # Auth: the `RELIEVER_KNOWLEDGE_TOKEN` secret must be a token with
-      # `read:packages` on the papeete-consulting org (to pull the private image) AND
-      # read access to the private corpora kpack resolves (reliever-knowledge,
-      # and — via the governance registry in .kpack.yaml — banking-governance,
-      # banking-tech). The wrapper passes it into the container as GITHUB_TOKEN
-      # so kpack's git clones of those private corpora authenticate.
+      # Auth: the `RELIEVER_KNOWLEDGE_TOKEN` secret must be a token with read access
+      # to the private corpora kpack resolves (reliever-knowledge, and — via the
+      # governance registry in .kpack.yaml — banking-governance, banking-tech).
+      # kpack clones those with git, so we point git's github.com https auth at the
+      # token. The engine itself is public on PyPI — no `read:packages` scope needed.
       #
-      # If the secret is not set (or the image cannot be pulled for any other
-      # reason), this step succeeds silently and the script detects the missing
-      # CLI and skips the check (exit 0). Configure the secret to make it effective.
+      # If the secret is not set, this step succeeds silently and the script detects
+      # the missing corpora and skips the check (exit 0). Configure it to enable.
       - name: Make kpack available (optional)
         id: install_kpack
         continue-on-error: true
@@ -61,16 +58,15 @@ jobs:
             echo "  The language-check script will run in skip mode."
             exit 0
           fi
-          # Authenticate to GHCR and pre-pull the private kpack image so the
-          # bin/kpack wrapper's `docker run` calls don't re-pull each invocation.
-          echo "${RELIEVER_KNOWLEDGE_TOKEN}" | docker login ghcr.io -u x-access-token --password-stdin
-          docker pull ghcr.io/papeete-consulting/kpack:v1.0.0
-          # Put the wrapper on PATH and let kpack authenticate its private corpus
-          # clones with the same token (the wrapper reads GITHUB_TOKEN).
-          echo "${GITHUB_WORKSPACE}/bin" >> "$GITHUB_PATH"
+          # Install the engine from PyPI (public) and put its console script on PATH.
+          python3 -m pip install --user "kpack==2.0.0"
+          echo "${HOME}/.local/bin" >> "$GITHUB_PATH"
+          # kpack clones the private corpora with git — authenticate github.com https
+          # clones with the token (equivalent to the old wrapper's GITHUB_TOKEN).
+          git config --global url."https://x-access-token:${RELIEVER_KNOWLEDGE_TOKEN}@github.com/".insteadOf "https://github.com/"
           echo "GITHUB_TOKEN=${RELIEVER_KNOWLEDGE_TOKEN}" >> "$GITHUB_ENV"
-          # Smoke-test: engine version needs no corpus/auth, proves the image runs.
-          "${GITHUB_WORKSPACE}/bin/kpack" version >/dev/null
+          # Smoke-test: engine version needs no corpus/auth, proves the console script runs.
+          "${HOME}/.local/bin/kpack" version >/dev/null
 
       - name: Verify natural language consistency (BCM ↔ code)
         env:

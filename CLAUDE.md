@@ -9,7 +9,7 @@ It turns validated business capabilities into runnable .NET microservices, BFFs,
 vanilla web frontends, contract stubs, and their tests.
 
 All upstream knowledge is consumed **read-only** through a single CLI — **`kpack`**,
-the shared knowledge-pack engine (container `ghcr.io/papeete-consulting/kpack`, repo
+the shared knowledge-pack engine (PyPI package `kpack`, repo
 `papeete-consulting/kpack`, implementing `ADR-KCM-URBA-0002`). One engine serves
 every capability map; the map is selected **by the id prefix or `--context`, never
 by a binary name**. `kpack` replaces the three retired per-map CLIs `rlv-knowledge`,
@@ -41,15 +41,16 @@ never authors or edits upstream artifacts. There is no `bcm/`, `adr/`, `func-adr
 
 ### kpack — the one knowledge CLI
 
-`kpack` is delivered as the container image **`ghcr.io/papeete-consulting/kpack:v1.0.0`**.
-Skills, agents and scripts invoke it as a **bare `kpack <subcmd>`**, exactly as they
-called the old CLIs. Two setup options:
+`kpack` is a published **PyPI package**. Install it once so a **bare `kpack <subcmd>`** is
+on `PATH` — skills, agents and scripts call it exactly as they called the old CLIs:
 
-- **Container wrapper (default):** `bin/kpack` runs the image; put `bin/` on `PATH`
-  (`export PATH="$PWD/bin:$PATH"`). Needs Docker and a `GITHUB_TOKEN` with
-  `read:packages` + read on the private corpus repos.
-- **From source:** `pipx install "git+https://…@github.com/papeete-consulting/kpack.git"`
-  installs a native `kpack` console script with the identical surface (no Docker).
+```bash
+pip install "kpack==2.0.0"        # or: uvx --from kpack==2.0.0 kpack <subcmd>
+```
+
+No Docker. `kpack` clones the (private) corpus repos with your **host git identity**, so
+make sure git is authenticated to GitHub (SSH, or a `gh`/PAT https credential) for the
+`reliever-knowledge`, `banking-tech` and `banking-governance` repos it resolves.
 
 Enterprise → governance-registry resolution is configured once in the repo-root
 **`.kpack.yaml`** (`BNK` → `banking-governance`); from there `kpack` resolves every
